@@ -77,7 +77,8 @@ cms = [cm1,cm2,cm3]
 for cm in cms:
     group_map = process_map_for_group_map(group_map,cm)    
 group_map = clean_group_map(group_map)         
-    
+
+"""    
 json_grp_map = dict()
 json_grp_map['concepts'] = []
 json_grp_map['propositions'] = []
@@ -103,11 +104,38 @@ for text, id in concepts.items():
             pro_entry['from'] = concepts[text]
             pro_entry['to'] = concepts[txt]
             json_grp_map['propositions'].append(pro_entry)
+"""
+def map_per_key_concept(group_map,key_concepts):
+    maps = list()
+    for key_concept in key_concepts:
+        json_cm = dict()
+        json_cm['concepts'] = []
+        json_cm['propositions'] = []
+        id_gen = 0
+        concepts_dict = dict()
+        concepts_dict[key_concept] = id_gen
+        con_entry = dict()
+        con_entry['text'] = key_concept 
+        con_entry['id'] = id_gen
+        json_cm['concepts'].append(con_entry)
+        id_gen += 1
+        for concept in group_map[key_concept]['text']:
+            concepts_dict[concept] = id_gen
+            con_entry = dict()
+            con_entry['text'] = concept
+            con_entry['id'] = id_gen
+            json_cm['concepts'].append(con_entry)
+            id_gen += 1
+        for pro,txt in enumerate(group_map[key_concept]['text']):
+            pro_entry = dict()
+            pro_entry['from'] = 0
+            pro_entry['to'] = concepts_dict[txt]
+            pro_entry['text'] = group_map[key_concept]['propositions'][pro]
+            json_cm['propositions'].append(pro_entry)
+        maps.append(json_cm)
+    return maps
 
-with open('result.json', 'w') as fp:
-    json.dump(json_grp_map, fp)
-
-
-
+maps = map_per_key_concept(group_map,key_concepts)
+pprint(maps[0])
 
 
