@@ -1,5 +1,6 @@
 import json
 import spacy
+from random import randint
 from pprint import pprint
 with open('MLMap1.json') as f:
   cm1 = json.load(f)
@@ -78,36 +79,12 @@ for cm in cms:
     group_map = process_map_for_group_map(group_map,cm)    
 group_map = clean_group_map(group_map)         
 
-"""    
-json_grp_map = dict()
-json_grp_map['concepts'] = []
-json_grp_map['propositions'] = []
 
-id_gen = 0
-concepts = dict()
-for k,v in group_map.items():
-    concepts[k] = id_gen
-    id_gen += 1
-    for con in v['text']:
-        concepts[con] = id_gen
-        id_gen += 1
-
-for text, id in concepts.items():
-    con_entry = dict()
-    con_entry['text'] = text
-    con_entry['id'] = id
-    json_grp_map['concepts'].append(con_entry)
-    for v in group_map.values():
-        for pro,txt in enumerate(v['text']):
-            pro_entry = dict()
-            pro_entry['text'] = v['propositions'][pro]
-            pro_entry['from'] = concepts[text]
-            pro_entry['to'] = concepts[txt]
-            json_grp_map['propositions'].append(pro_entry)
-"""
 def map_per_key_concept(group_map,key_concepts):
     maps = list()
     for key_concept in key_concepts:
+        x = 35
+        y = 366
         json_cm = dict()
         json_cm['concepts'] = []
         json_cm['propositions'] = []
@@ -117,6 +94,8 @@ def map_per_key_concept(group_map,key_concepts):
         con_entry = dict()
         con_entry['text'] = key_concept 
         con_entry['id'] = id_gen
+        con_entry["x"] = 762
+        con_entry["y"] = 111
         json_cm['concepts'].append(con_entry)
         id_gen += 1
         for concept in group_map[key_concept]['text']:
@@ -124,6 +103,9 @@ def map_per_key_concept(group_map,key_concepts):
             con_entry = dict()
             con_entry['text'] = concept
             con_entry['id'] = id_gen
+            con_entry["x"] = x + randint(30,50)
+            x += 230
+            con_entry["y"] = y 
             json_cm['concepts'].append(con_entry)
             id_gen += 1
         for pro,txt in enumerate(group_map[key_concept]['text']):
@@ -133,9 +115,9 @@ def map_per_key_concept(group_map,key_concepts):
             pro_entry['text'] = group_map[key_concept]['propositions'][pro]
             json_cm['propositions'].append(pro_entry)
         maps.append(json_cm)
+    for i,mapp in enumerate(maps):
+        maps[i] = json.dumps(mapp)
     return maps
 
 maps = map_per_key_concept(group_map,key_concepts)
-pprint(maps[0])
-
-
+print(maps[0])
