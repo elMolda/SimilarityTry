@@ -34,7 +34,8 @@ def process_map_for_group_map(group_map,cm):
         #concepts[con['id']] = preprocess_sentence(con['text'])
         concepts[con['id']] = con['text']
     for kc in group_map.keys():
-        key_concepts_in_map = list()
+        text = list()
+        prop = list()
         key_concept = nlp(kc)
         for c in concepts.values():
             c = nlp(preprocess_sentence(c))
@@ -42,9 +43,10 @@ def process_map_for_group_map(group_map,cm):
                 for pro in cm['propositions']:
                     pro_txt = nlp(preprocess_sentence(concepts[pro['from']]))
                     if is_similar(pro_txt,c,0.89):
-                        sentence = " ".join((pro['text'],concepts[pro['to']]))
-                        key_concepts_in_map.append(sentence)
-        group_map[kc] = group_map[kc] + key_concepts_in_map
+                        prop.append(pro['text'])
+                        text.append(concepts[pro['to']])
+        group_map[kc]["propositions"] = group_map[kc]["propositions"] + prop
+        group_map[kc]["text"] = group_map[kc]["text"] + text
     return group_map
 
 key_concepts = ["machine learning", "unsupervised learning", "supervised learning",
@@ -54,16 +56,34 @@ for i,c in enumerate(key_concepts):
 
 group_map = dict()
 for kc in key_concepts:
-    group_map[kc] = list()
+    group_map[kc] = {"propositions": list(), "text": list()}
     
 group_map = process_map_for_group_map(group_map,cm1)
 group_map = process_map_for_group_map(group_map,cm2)
 group_map = process_map_for_group_map(group_map,cm3)
 
-for k,v in group_map.items():
-    print(k)
-    print(v)
+def clean_group_map(group_map):
+    for k,v in group_map.items():
+        i = 0
+        while i<len(v['text']):
+            j = i + 1
+            while j<len(v['text']):
+                if is_similar(nlp(v['text'][i]),nlp(v['text'][j]),0.7):
+                    del v['text'][j]
+                    del v['propositions'][j]
+                j+=1
+            i+=1
+        group_map[k] = v
+    return group_map
 
+group_map = clean_group_map(group_map)
+
+for k,v in group_map.items():
+    print("Key Concept:",k)
+    print("What students say")
+    for p,t in enumerate(v['text']):
+            print(v['propositions'][p],t)
+    
 
 
 
