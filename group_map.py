@@ -49,19 +49,6 @@ def process_map_for_group_map(group_map,cm):
         group_map[kc]["text"] = group_map[kc]["text"] + text
     return group_map
 
-key_concepts = ["machine learning", "unsupervised learning", "supervised learning",
-                "applications", "deep learning" ,"reinforcement learning"]
-for i,c in enumerate(key_concepts):
-    key_concepts[i] = preprocess_sentence(c)
-
-group_map = dict()
-for kc in key_concepts:
-    group_map[kc] = {"propositions": list(), "text": list()}
-    
-group_map = process_map_for_group_map(group_map,cm1)
-group_map = process_map_for_group_map(group_map,cm2)
-group_map = process_map_for_group_map(group_map,cm3)
-
 def clean_group_map(group_map):
     for k,v in group_map.items():
         i = 0
@@ -76,14 +63,50 @@ def clean_group_map(group_map):
         group_map[k] = v
     return group_map
 
-group_map = clean_group_map(group_map)
-
-for k,v in group_map.items():
-    print("Key Concept:",k)
-    print("What students say")
-    for p,t in enumerate(v['text']):
-            print(v['propositions'][p],t)
+kc_pair = dict()
+key_concepts = ["machine learning", "unsupervised learning", "supervised learning",
+                "applications", "deep learning" ,"reinforcement learning"]
+for i,c in enumerate(key_concepts):
+    key_concepts[i] = preprocess_sentence(c)
     
+
+group_map = dict()
+for kc in key_concepts:
+    group_map[kc] = {"propositions": list(), "text": list()}
+cms = [cm1,cm2,cm3]    
+for cm in cms:
+    group_map = process_map_for_group_map(group_map,cm)    
+group_map = clean_group_map(group_map)         
+    
+json_grp_map = dict()
+json_grp_map['concepts'] = []
+json_grp_map['propositions'] = []
+
+id_gen = 0
+concepts = dict()
+for k,v in group_map.items():
+    concepts[k] = id_gen
+    id_gen += 1
+    for con in v['text']:
+        concepts[con] = id_gen
+        id_gen += 1
+
+for text, id in concepts.items():
+    con_entry = dict()
+    con_entry['text'] = text
+    con_entry['id'] = id
+    json_grp_map['concepts'].append(con_entry)
+    for v in group_map.values():
+        for pro,txt in enumerate(v['text']):
+            pro_entry = dict()
+            pro_entry['text'] = v['propositions'][pro]
+            pro_entry['from'] = concepts[text]
+            pro_entry['to'] = concepts[txt]
+            json_grp_map['propositions'].append(pro_entry)
+
+with open('result.json', 'w') as fp:
+    json.dump(json_grp_map, fp)
+
 
 
 
